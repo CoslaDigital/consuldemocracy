@@ -15,6 +15,15 @@ More info in: https://github.com/consul-ml/consul-ml
 
 
 # In[ ]:
+import os
+import ml_setup
+
+# Call the download_and_setup_glove() function from setup.py
+download_command = ml_setup.download_command
+unzip_command = ml_setup.unzip_command
+
+ml_setup.download_and_setup_glove(download_command, unzip_command)
+data_path=ml_setup.data_path
 
 
 def check_file(file_name):
@@ -63,12 +72,6 @@ tqdm_notebook = True
 
 
 # In[2]:
-import os
-
-if os.environ.get("CONSUL_TENANT"):
-    data_path = '../../tenants/' + os.environ["CONSUL_TENANT"] + '/machine_learning/data'
-else:
-    data_path = '../data'
 
 config_file = 'budgets_related_content_and_tags_nmf.ini'
 logging_file ='budgets_related_content_and_tags_nmf.log'

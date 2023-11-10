@@ -14,18 +14,16 @@ More info in: https://github.com/consul-ml/consul-ml
 """
 
 
-# In[2]:
+import os
+import ml_setup
 
+# Call the download_and_setup_glove() function from setup.py
+download_command = ml_setup.download_command
+unzip_command = ml_setup.unzip_command
 
-# DOWNLOAD THE GLOVE EMBEDDINGS, IN THE DATA FOLDER:
+ml_setup.download_and_setup_glove(download_command, unzip_command)
+data_path=ml_setup.data_path
 
-# ENGLISH:
-#!wget https://nlp.stanford.edu/data/glove.6B.zip
-#!gunzip glove.6B.zip
-
-# SPANISH:
-#!wget http://dcc.uchile.cl/~jperez/word-embeddings/glove-sbwc.i25.vec.gz
-#!gunzip glove-sbwc*.gz 
 
 
 # In[ ]:
@@ -62,17 +60,14 @@ tqdm_notebook = True
 # In[3]:
 import os
 
-if os.environ.get("CONSUL_TENANT"):
-    data_path = '../../tenants/' + os.environ["CONSUL_TENANT"] + '/machine_learning/data'
-else:
-    data_path = '../data'
-
 config_file = 'proposals_summary_comments_textrank.ini'
 logging_file ='proposals_summary_comments_textrank.log'
 
 # Read the configuration file
 import configparser
 config = configparser.ConfigParser()
+#check_file(os.path.join(data_path,config_file))
+#config.read(os.path.join(data_path,config_file))
 check_file(os.path.join(config_file))
 config.read(os.path.join(config_file))
 
@@ -488,15 +483,15 @@ comments_df['comments_summary'] = comments_df['comments_sentences_scores'].apply
 # In[29]:
 
 
-# for idx,row in comments_input_df[comments_input_df['commentable_id'] == 10].iterrows():
-#     print(row['body'])
-#     print('-------')
+for idx,row in comments_input_df[comments_input_df['commentable_id'] == 10].iterrows():
+     print(row['body'])
+     print('-------')
 
 
 # In[30]:
 
 
-#print(comments_df.loc[8,'comments_summary'])
+print(comments_df.loc[8,'comments_summary'])
 
 
 # In[ ]:

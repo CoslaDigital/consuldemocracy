@@ -14,21 +14,17 @@ More info in: https://github.com/consul-ml/consul-ml
 """
 
 
-# In[ ]:
-
-
-# DOWNLOAD THE GLOVE EMBEDDINGS, IN THE DATA FOLDER:
-
-# ENGLISH:
-#!wget https://nlp.stanford.edu/data/glove.6B.zip
-#!gunzip glove.6B.zip
-
-# SPANISH:
-#!wget http://dcc.uchile.cl/~jperez/word-embeddings/glove-sbwc.i25.vec.gz
-#!gunzip glove-sbwc*.gz 
-
 
 # In[ ]:
+import os
+import ml_setup
+
+# Call the download_and_setup_glove() function from setup.py
+download_command = ml_setup.download_command
+unzip_command = ml_setup.unzip_command
+
+ml_setup.download_and_setup_glove(download_command, unzip_command)
+data_path=ml_setup.data_path
 
 
 def check_file(file_name):
@@ -57,15 +53,6 @@ comments_summaries_filename = 'ml_comments_summaries_budgets.json'
 comments_summaries_filename_csv = 'ml_comments_summaries_budgets.csv'
 
 tqdm_notebook = True
-
-
-# In[ ]:
-import os
-
-if os.environ.get("CONSUL_TENANT"):
-    data_path = '../../tenants/' + os.environ["CONSUL_TENANT"] + '/machine_learning/data'
-else:
-    data_path = '../data'
 
 config_file = 'budgets_summary_comments_textrank.ini'
 logging_file ='budgets_summary_comments_textrank.log'
