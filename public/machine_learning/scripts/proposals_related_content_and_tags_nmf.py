@@ -445,8 +445,9 @@ def cleaning_features(top_features):
 
 
 # Fit the NMF model
-nmf = NMF(n_components=n_components, random_state=1,
-          alpha=.1, l1_ratio=.5, init='nndsvd').fit(tfidf)
+#nmf = NMF(n_components=n_components, random_state=1, alpha=.1, l1_ratio=.5, init='nndsvd').fit(tfidf)
+
+nmf = NMF(n_components=n_components, random_state=1, alpha=.1, l1_ratio=.5, init='random').fit(tfidf)
 
 # nmf.components_ is the H matrix 
 # W = nmf.fit_transform(tfidf)
