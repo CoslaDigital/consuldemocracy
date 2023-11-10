@@ -76,8 +76,8 @@ logging_file ='proposals_related_content_and_tags_nmf.log'
 # Read the configuration file
 import configparser
 config = configparser.ConfigParser()
-check_file(os.path.join(data_path,config_file))
-config.read(os.path.join(data_path,config_file))
+check_file(os.path.join(config_file))
+config.read(os.path.join(config_file))
 
 stanza_model_lang = config['PREPROCESSING']['stanza_model_lang']
 stopwords_lang = config['PREPROCESSING']['stopwords_lang']

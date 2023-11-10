@@ -73,8 +73,8 @@ logging_file ='proposals_summary_comments_textrank.log'
 # Read the configuration file
 import configparser
 config = configparser.ConfigParser()
-check_file(os.path.join(data_path,config_file))
-config.read(os.path.join(data_path,config_file))
+check_file(os.path.join(config_file))
+config.read(os.path.join(config_file))
 
 sent_token_lang = config['PREPROCESSING']['sent_token_lang']
 stopwords_lang = config['PREPROCESSING']['stopwords_lang']
