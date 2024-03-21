@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_12_12_153823) do
+ActiveRecord::Schema.define(version: 2024_03_21_155439) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -305,6 +305,8 @@ ActiveRecord::Schema.define(version: 2023_12_12_153823) do
     t.datetime "ignored_flag_at"
     t.integer "flags_count", default: 0
     t.integer "original_heading_id"
+    t.string "video_url"
+    t.bigint "estimated_price"
     t.index ["administrator_id"], name: "index_budget_investments_on_administrator_id"
     t.index ["author_id"], name: "index_budget_investments_on_author_id"
     t.index ["budget_id"], name: "index_budget_investments_on_budget_id"
@@ -404,6 +406,7 @@ ActiveRecord::Schema.define(version: 2023_12_12_153823) do
     t.string "voting_style", default: "knapsack"
     t.boolean "published"
     t.boolean "hide_money", default: false
+    t.boolean "stv"
   end
 
   create_table "campaigns", id: :serial, force: :cascade do |t|
