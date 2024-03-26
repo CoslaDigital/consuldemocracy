@@ -2,6 +2,10 @@ require_dependency Rails.root.join("app", "models", "user").to_s
 
 class User < ApplicationRecord
 
+  validates :email, presence: true, if: -> { unconfirmed_phone.blank? }
+  validates :unconfirmed_phone, presence: true, if: -> { email.blank? }
+  validate :document_number_format
+
   # Get the existing user by email if the provider gives us a verified email.
   def self.first_or_initialize_for_oauth(auth)
   Rails.logger.info('Attributes in auth.info:')
@@ -27,8 +31,29 @@ class User < ApplicationRecord
     )
   end
   
+ def erase(erase_reason = nil)
+    update!(
+      erased_at: Time.current,
+      erase_reason: erase_reason,
+      username: nil,
+      email: nil,
+      unconfirmed_email: nil,
+      phone_number: nil,
+      encrypted_password: "",
+      confirmation_token: nil,
+      reset_password_token: nil,
+      email_verification_token: nil,
+      confirmed_phone: nil,
+      unconfirmed_phone: nil,
+      document_number: nil
+    )
+    identities.destroy_all
+    remove_roles
+  end
   
-
+   def configure_permitted_parameters
+      devise_parameter_sanitizer.permit(:account_update, keys: [:email, :unconfirmed_phone, :document_number])
+    end
 
 
 # Get the existing user by email if the provider gives us a verified email.
@@ -140,5 +165,93 @@ Rails.logger.info("extracted values: #{extracted_values.inspect}")
   end
 
 
+ # overwritting of Devise method to allow login using email OR username
+  def self.find_for_database_authentication(warden_conditions)
+    conditions = warden_conditions.dup
+    login = conditions.delete(:login)
+    where(conditions.to_hash).find_by(["lower(email) = ?", login.downcase]) ||
+    where(conditions.to_hash).find_by(["username = ?", login]) ||
+    where(conditions.to_hash).find_by(["confirmed_phone = ?", login]) ||
+    where(conditions.to_hash).find_by(["document_number = ?", login])
+  end
 
+
+ 
+  def send_devise_notification(notification, *args)
+  Rails.logger.debug("notification is: #{notification} ")
+  #this needs a more elegant solution to extract the server name from an attribute
+  server_name = Rails.application.secrets.server_name
+  protocol="http://"
+  port=":3000"
+  url = server_name+port+"/users/confirmation?confirmation_token="+args[0].to_s
+ # nurl =  url_for(controller:'users/confirmations', action: 'create')
+ # number to come from the phone field or the unconfirmed phone field
+# the code must be associated with one of the tokens which seems to be hidden in the system and not used
+  dummy_code = "REG"
+  self.update!(sms_confirmation_code: dummy_code)
+  Rails.logger.debug("args: #{args.inspect}") # Write the contents of the args parameter to the log file
+  Rails.logger.debug("Got here insie ") # url_for gives this
+  sms_api = SMSApi.new
+#testing using unconfirmed phone
+    sms_api.send_sms(unconfirmed_phone, username, url, dummy_code) if unconfirmed_phone?
+    devise_mailer.send(notification, self, *args).deliver_later if email?
+  end
+
+
+ private
+
+
+    def validate_document_number(document_number)
+  return true if document_number.nil?
+
+
+  valid_prefixes = { '6337' => true, '5678' => true, '9012' => true } # Example hash of valid prefixes
+
+  # Check if the document number is 16 digits long
+  return false unless document_number.to_s.length == 16
+
+  # Extract the prefix, middle, and suffix parts of the document number
+  prefix = document_number.to_s[0, 4]
+  middle = document_number.to_s[4, 10]
+  suffix = document_number.to_s[14, 2]
+
+  # Check if the prefix exists in the valid prefixes hash
+  return false unless valid_prefixes.key?(prefix)
+
+  # Check if the middle and suffix parts are numeric
+  return false unless middle.match?(/\A\d{10}\z/) && suffix.match?(/\A\d{2}\z/)
+
+  # If all criteria are met, return true
+  true
+   end
+
+    def document_number_format
+    errors.add(:document_number, "is not valid") unless validate_document_number(document_number)
+  end
+   
+
+    def clean_document_number
+      return unless document_number.present?
+
+      self.document_number = document_number.gsub(/[^a-z0-9]+/i, "").upcase
+    end
+
+    def validate_username_length
+      validator = ActiveModel::Validations::LengthValidator.new(
+        attributes: :username,
+        maximum: User.username_max_length)
+      validator.validate(self)
+    end
+
+    def phone_exists
+    if unconfirmed_phone? || confirmed_phone?
+    end
+
+    def validate_email_or_phone
+    if email.blank? && unconfirmed_phone.blank?
+      errors.add(:email_or_phone, "must include either email or phone")
+    end
+  end
+
+end
 end

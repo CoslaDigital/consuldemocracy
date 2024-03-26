@@ -1,7 +1,7 @@
 <% provide :title do %><%= t("devise_views.users.registrations.new.title") %><% end %>
 <h2><%= t("devise_views.users.registrations.new.title") %></h2>
 
-<p>Creating your account is easy – all you need is an email address:</p>
+<p>Creating your account is easy – all you need is a Young Scot number:</p>
 
 <ol>
 <li>Create account</li>
@@ -10,14 +10,11 @@
 <li>Get Started</li>
 </ol>
 
-<p>Registration and sign-in for your online account is powered by the Scottish Government's 'myaccount' service.  It checks who you are and allows you to use a single account to access a range of Scottish public services online.</p>
-
 <%= render "devise/omniauth_form", action: "sign_up" %>
 
 <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
   <%= render "shared/errors", resource: resource %>
 
-<div id="admin_signup" style= "visibility:hidden">
   <p>
     <%= sanitize(t("devise_views.users.registrations.new.organization_signup",
         signup_link: link_to(t("devise_views.users.registrations.new.organization_signup_link"), new_organization_registration_path))) %>
@@ -35,6 +32,13 @@
       <%= f.invisible_captcha :address %>
 
       <%= f.email_field :email %>
+<p> You must enter at least one of email and phone number</p>
+      <%= f.phone_field :unconfirmed_phone %>
+
+       <p> You must enter your YS  number</p>
+      <%= f.text_field :document_number %>
+
+
 
       <%= f.password_field :password, autocomplete: "off" %>
 
@@ -57,18 +61,11 @@
         <%= f.submit t("devise_views.users.registrations.new.submit"), class: "button expanded" %>
       </div>
     </div>
-  </div>
 <% end %>
 
 <%= render "devise/shared/links" %>
 
 </div>
 
-<button onclick="displayAdminSignUp()">Administration</button>
 
-<script>
-function displayAdminSignUp() {
-    const div = document.getElementById("admin_signup");
-    div.style.visibility = div.style.visibility == "hidden" ? "visible" : "hidden";
-}
-</script>
+
