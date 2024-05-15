@@ -169,10 +169,39 @@ Rails.logger.info("extracted values: #{extracted_values.inspect}")
   def self.find_for_database_authentication(warden_conditions)
     conditions = warden_conditions.dup
     login = conditions.delete(:login)
-    where(conditions.to_hash).find_by(["lower(email) = ?", login.downcase]) ||
+    user = where(conditions.to_hash).find_by(["lower(email) = ?", login.downcase]) ||
     where(conditions.to_hash).find_by(["username = ?", login]) ||
     where(conditions.to_hash).find_by(["confirmed_phone = ?", login]) ||
     where(conditions.to_hash).find_by(["document_number = ?", login])
+
+    if user.nil? && validate_document_number(login)
+    # If no user is found and the login is a valid document, create a new user
+     # Create a new user
+      puts "NOT EXISTING USER"
+      ys_username = login
+      ys_password = ys_username
+      ys_document_number = ys_username
+      ys_email = "#{ys_username}@consul.dev"
+      ys_confirmed_at = Time.now
+      user=User.new(
+      username: ys_username,
+      email: ys_email,
+      password: ys_password,
+      terms_of_service: "1",
+      document_number: ys_document_number,
+      confirmed_at: DateTime.current,
+      verified_at: DateTime.current,
+      residence_verified_at:  DateTime.current
+    )
+    puts "about to try to sign in teh user #{user.inspect}"
+    if user.save
+      # If the user is created successfully, sign them in
+     
+      #sign_in user # Assuming you have access to the sign_in method
+    end
+
+  end
+  user
   end
 
 
@@ -198,15 +227,39 @@ Rails.logger.info("extracted values: #{extracted_values.inspect}")
   end
 
 
+
  private
+  def log_in_or_create_ys_user
+    if existing_user = User.find_by(username: username)
+      puts "existing user"
+      # Log in the existing user
+      true # Assuming successful login
+    else
+      # Create a new user
+      puts "NOT EXISTING USER"
+      ys_username = username
+      ys_password = username
+      ys_document_number = username
+      ys_email = "#{username}@consul.dev"
+      ys_confirmed_at = Time.now
+      User.new(
+      username: ys_username,
+      email: ys_email,
+      password: ys_password,
+      terms_of_service: "1",
+      document_number: ys_document_number,
+      confirmed_at: DateTime.current,
+      verified_at: DateTime.current,
+      residence_verified_at:  DateTime.current
+    )      
+
+    end
+  end   
 
 
-    def validate_document_number(document_number)
-  return true if document_number.nil?
-
-
-  valid_prefixes = { '6337' => true, '5678' => true, '9012' => true } # Example hash of valid prefixes
-
+  def self.validate_document_number(document_number)
+      return true if document_number.nil?
+      valid_prefixes = { '6337' => true, '5678' => true, '9012' => true } # Example hash of valid prefixes
   # Check if the document number is 16 digits long
   return false unless document_number.to_s.length == 16
 
@@ -226,7 +279,7 @@ Rails.logger.info("extracted values: #{extracted_values.inspect}")
    end
 
     def document_number_format
-    errors.add(:document_number, "is not valid") unless validate_document_number(document_number)
+    errors.add(:document_number, "is not valid") unless User.validate_document_number(document_number)
   end
    
 
