@@ -14,7 +14,7 @@ class Proposal < ApplicationRecord
   include Mappable
   include Notifiable
   include Documentable
-  include EmbedVideosHelper
+  include Videoable
   include Relationable
   include Milestoneable
   include Randomizable
@@ -59,8 +59,6 @@ class Proposal < ApplicationRecord
 
   validates :terms_of_service, acceptance: { allow_nil: false }, on: :create
 
-  validate :valid_video_url?
-
   before_validation :set_responsible_name
 
   before_save :calculate_hot_score, :calculate_confidence_score
@@ -77,13 +75,13 @@ class Proposal < ApplicationRecord
   scope :sort_by_archival_date,    -> { archived.sort_by_confidence_score }
   scope :sort_by_recommendations,  -> { order(cached_votes_up: :desc) }
 
-  scope :archived,       -> { where("proposals.created_at <= ?", Setting.archived_proposals_date_limit) }
-  scope :not_archived,   -> { where("proposals.created_at > ?", Setting.archived_proposals_date_limit) }
-  scope :last_week,      -> { where("proposals.created_at >= ?", 7.days.ago) }
+  scope :archived,       -> { where(created_at: ...Setting.archived_proposals_date_limit) }
+  scope :not_archived,   -> { where(created_at: Setting.archived_proposals_date_limit..) }
+  scope :last_week,      -> { where(created_at: 7.days.ago..) }
   scope :retired,        -> { where.not(retired_at: nil) }
   scope :not_retired,    -> { where(retired_at: nil) }
-  scope :successful,     -> { where("cached_votes_up >= ?", Proposal.votes_needed_for_success) }
-  scope :unsuccessful,   -> { where("cached_votes_up < ?", Proposal.votes_needed_for_success) }
+  scope :successful,     -> { where(cached_votes_up: Proposal.votes_needed_for_success..) }
+  scope :unsuccessful,   -> { where(cached_votes_up: ...Proposal.votes_needed_for_success) }
   scope :public_for_api, -> { all }
   scope :selected,       -> { where(selected: true) }
   scope :not_selected,   -> { where(selected: false) }
